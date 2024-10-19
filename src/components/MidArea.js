@@ -28,8 +28,12 @@ const MidArea = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-auto bg-gray-100 p-6" onDrop={handleDrop} onDragOver={handleDragOver}>
+    <div className="flex-1 h-full overflow-auto bg-gray-100 pt-3 pl-6 pr-6" onDrop={handleDrop} onDragOver={handleDragOver}>
+      <div className="inline-block bg-purple-500  w-full text-center px-3 py-1 text-lg font-bold text-white mr-2 mb-2">
+        MidArea
+      </div>
       <div className="bg-white rounded-lg shadow-md p-6">
+      
 
         {selectedSprite ? (
           <>

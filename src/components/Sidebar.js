@@ -11,6 +11,9 @@ export default function Sidebar() {
   return (
     <>
     <div className="w-96 flex-none h-full overflow-y-auto flex flex-col items-start p-2 border-r border-gray-200">
+    <div className="inline-block bg-purple-500  w-full text-center px-3 py-1 text-lg font-bold text-white mr-2 mb-2">
+        Sidebar
+      </div>
       {
         Object.keys(sidebarBlocks).map(key => {
           return (
@@ -32,14 +35,7 @@ export default function Sidebar() {
                     default:
                       break
                   }
-                  // return <div
-                  //   key={index}
-                  //   draggable
-                  //   onDragStart={(e) => handleDragStart(e, block.type, block.defaultPayload, block.text)}
-                  //   className={`inline-block ${bgColor} ${textColor} rounded-full px-3 py-1 text-sm font-bold  mr-2 mb-2`}
-                  //  >
-                  //   {block.text}
-                  // </div>
+                  
                   
                    return <div
                    key={index}

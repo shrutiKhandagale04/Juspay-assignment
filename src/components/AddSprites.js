@@ -21,7 +21,7 @@ export const AddSprites = () => {
     return (
         <>
             <button
-                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
                 onClick={() => setShowModal(true)}
             >
                 Add Sprites
@@ -49,7 +49,7 @@ export const AddSprites = () => {
                                 Cancel
                             </button>
                             <button
-                                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
                                 onClick={handleAddSprite}
                             >
                                 Add Sprite

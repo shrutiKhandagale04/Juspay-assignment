@@ -16,5 +16,10 @@ module.exports = merge([
         new CssMinimizerPlugin(),
       ],
     },
+    optimization:{
+      splitChunks:{
+        chunks:'all',
+      },
+    },
   },
 ]);

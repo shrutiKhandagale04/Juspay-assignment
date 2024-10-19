@@ -11,7 +11,7 @@ const SpriteControls = () => {
   const selectedSpritId = spritesState.selectedSpriteId
   const dispatch = useDispatch();
   return (
-    <div className="flex flex-col absolute bottom-0 w-96 border-t-2 pb-2 border-gray-200 bg-white " style={{ flex: 0.2 }}>
+    <div className="flex flex-col absolute bottom-0 w-[370px] border-t-2 pb-2 border-gray-200 bg-white " style={{ flex: 0.2 }}>
       
       <div className="flex justify-between items-center mb-2">
        

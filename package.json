@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "webpack serve --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js"
+    "start": "react-scripts strart",
+    "build": "react-scripts build"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
@@ -12,6 +12,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^8.0.5",
+    "react-scripts": "^5.0.1",
     "tailwindcss": "^2.0.1",
     "uuid": "^10.0.0"
   },
