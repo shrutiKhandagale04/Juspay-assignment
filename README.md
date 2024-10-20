@@ -28,3 +28,5 @@ This project is a Scratch clone that replicates some of the core functionalities
 4. **Reset Workspace:**
    - A reset button clears the workspace, allowing users to start over without manual cleanup.
 
+### Hosted Website's Link
+- https://juspay-clone-shruti.netlify.app/
