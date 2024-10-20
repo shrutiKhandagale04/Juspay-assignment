@@ -7,7 +7,6 @@ const initialState = {
     ],
     selectedSpriteId: allSprites[0].id,
     showCollisionAnimation: false,
-    shakeSprite:false,
     collisionHandled: false,
 };
 
@@ -102,13 +101,9 @@ const spritesSlice = createSlice({
             if (checkCollision(sprite1, sprite2) && state.showCollisionAnimation) {
                 // Swap actions if the sprites collide and the collision animation is enabled
                 [sprite1.actions, sprite2.actions] = [sprite2.actions, sprite1.actions];
-                state.showCollisionAnimation = true;
-                state.shakeSprite=true;
+                state.showCollisionAnimation = false;
                 state.collisionHandled = true;
             }
-        },
-        resetShakeSprit :(state)=>{
-              state.shakeSprite=false;
         },
         resetCollisionHandled: (state) => {
             state.collisionHandled = false;
@@ -119,13 +114,6 @@ const spritesSlice = createSlice({
             if (sprite) {
                 sprite.actions[index]['payload'][field] = value;
             }
-        },
-        resetSprites: (state) => {
-            state.sprites = initialState.sprites;
-            state.selectedSpriteId = initialState.selectedSpriteId;
-            state.showCollisionAnimation = initialState.showCollisionAnimation;
-            state.shakeSprite = initialState.shakeSprite;
-            state.collisionHandled = initialState.collisionHandled;
         }
     },
 });
@@ -133,7 +121,7 @@ const spritesSlice = createSlice({
 export const {
     addSprite, selectSprite, updateActionValue, toggleCollision,
     resetCollisionHandled, deleteAction, checkCollisionAndSwap,
-    goTo, move, rotate, addActionToSprite,resetShakeSprit,resetSprites
+    goTo, move, rotate, addActionToSprite
 } = spritesSlice.actions;
 
 export default spritesSlice.reducer;

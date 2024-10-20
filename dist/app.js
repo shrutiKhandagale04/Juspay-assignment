@@ -5480,7 +5480,34 @@ const initialState = {
   sprites: [constants_sprites[0]],
   selectedSpriteId: constants_sprites[0].id,
   showCollisionAnimation: false,
+  shakeSprite: false,
   collisionHandled: false
+};
+
+// Helper function to find a sprite by its ID
+const findSpriteById = (state, spriteId) => state.sprites.find(sprite => sprite.id === spriteId);
+
+// Function to check if two sprites are touching or overlapping
+const checkCollision = (sprite1, sprite2) => {
+  const {
+    x: x1,
+    y: y1
+  } = sprite1.position;
+  const {
+    x: x2,
+    y: y2
+  } = sprite2.position;
+
+  // Check for horizontal and vertical overlap
+  const horizontalOverlap = !(x1 > x2 + SPRITE_WIDTH || x1 + SPRITE_WIDTH < x2);
+  const verticalOverlap = !(y1 > y2 + SPRITE_HEIGHT || y1 + SPRITE_HEIGHT < y2);
+
+  // Check for touching horizontally or vertically
+  const touchHorizontally = x1 + SPRITE_WIDTH === x2 || x2 + SPRITE_WIDTH === x1;
+  const touchVertically = y1 + SPRITE_HEIGHT === y2 || y2 + SPRITE_HEIGHT === y1;
+
+  // Return true if sprites overlap or touch
+  return horizontalOverlap && verticalOverlap || touchHorizontally || touchVertically;
 };
 const spritesSlice = createSlice({
   name: 'sprites',
@@ -5509,7 +5536,7 @@ const spritesSlice = createSlice({
         actionText,
         payload
       } = action.payload;
-      const sprite = state.sprites.find(sprite => sprite.id === spriteId);
+      const sprite = findSpriteById(state, spriteId);
       if (sprite) {
         sprite.actions.push({
           type: actionType,
@@ -5523,7 +5550,7 @@ const spritesSlice = createSlice({
         steps,
         spriteId
       } = action.payload;
-      const sprite = state.sprites.find(s => s.id === spriteId);
+      const sprite = findSpriteById(state, spriteId);
       if (sprite) {
         sprite.position.x += Math.cos(sprite.rotation * Math.PI / 180) * steps;
         sprite.position.y -= Math.sin(sprite.rotation * Math.PI / 180) * steps;
@@ -5535,31 +5562,37 @@ const spritesSlice = createSlice({
         y,
         spriteId
       } = action.payload;
-      const sprite = state.sprites.find(s => s.id === spriteId);
-      sprite.position.x = x;
-      sprite.position.y = y;
+      const sprite = findSpriteById(state, spriteId);
+      if (sprite) {
+        sprite.position.x = x;
+        sprite.position.y = y;
+      }
     },
     rotate: (state, action) => {
       const {
         degree,
         spriteId
       } = action.payload;
-      const sprite = state.sprites.find(s => s.id === spriteId);
-      sprite.rotation += degree;
+      const sprite = findSpriteById(state, spriteId);
+      if (sprite) {
+        sprite.rotation += degree;
+      }
     },
     deleteAction: (state, action) => {
       const {
         index
       } = action.payload;
-      const sprite = state.sprites.find(s => s.id === state.selectedSpriteId);
-      sprite.actions.splice(index, 1);
+      const sprite = findSpriteById(state, state.selectedSpriteId);
+      if (sprite) {
+        sprite.actions.splice(index, 1);
+      }
     },
     toggleCollision: (state, action) => {
       const {
         showCollisionAnimation
       } = action.payload;
       if (showCollisionAnimation && state.sprites.length > 2) {
-        state.sprites = state.sprites.splice(0, 2);
+        state.sprites = state.sprites.slice(0, 2); // Avoid mutating original array
       }
       state.showCollisionAnimation = showCollisionAnimation;
     },
@@ -5568,38 +5601,41 @@ const spritesSlice = createSlice({
         spriteId1,
         spriteId2
       } = action.payload;
-      const sprite1 = state.sprites.find(s => s.id === spriteId1);
-      const sprite2 = state.sprites.find(s => s.id === spriteId2);
-      const checkCollision = (sprite1, sprite2) => {
-        const {
-          x: x1,
-          y: y1
-        } = sprite1.position;
-        const {
-          x: x2,
-          y: y2
-        } = sprite2.position;
-        const width = SPRITE_WIDTH;
-        const height = SPRITE_HEIGHT;
-        return !(x1 > x2 + width || x1 + width < x2 || y1 > y2 + height || y1 + height < y2);
-      };
+      const sprite1 = findSpriteById(state, spriteId1);
+      const sprite2 = findSpriteById(state, spriteId2);
+      if (!sprite1 || !sprite2) return; // Ensure both sprites exist
+
       if (checkCollision(sprite1, sprite2) && state.showCollisionAnimation) {
+        // Swap actions if the sprites collide and the collision animation is enabled
         [sprite1.actions, sprite2.actions] = [sprite2.actions, sprite1.actions];
-        state.showCollisionAnimation = false;
+        state.showCollisionAnimation = true;
+        state.shakeSprite = true;
         state.collisionHandled = true;
       }
+    },
+    resetShakeSprit: state => {
+      state.shakeSprite = false;
     },
     resetCollisionHandled: state => {
       state.collisionHandled = false;
     },
     updateActionValue: (state, action) => {
-      const sprite = state.sprites.find(s => s.id === state.selectedSpriteId);
+      const sprite = findSpriteById(state, state.selectedSpriteId);
       const {
         index,
         field,
         value
       } = action.payload;
-      sprite.actions[index]['payload'][field] = value;
+      if (sprite) {
+        sprite.actions[index]['payload'][field] = value;
+      }
+    },
+    resetSprites: state => {
+      state.sprites = initialState.sprites;
+      state.selectedSpriteId = initialState.selectedSpriteId;
+      state.showCollisionAnimation = initialState.showCollisionAnimation;
+      state.shakeSprite = initialState.shakeSprite;
+      state.collisionHandled = initialState.collisionHandled;
     }
   }
 });
@@ -5614,9 +5650,9 @@ const {
   goTo,
   move,
   rotate,
-  updateRepeatPayload,
   addActionToSprite,
-  playAllSprites
+  resetShakeSprit,
+  resetSprites
 } = spritesSlice.actions;
 /* harmony default export */ const redux_spritesSlice = (spritesSlice.reducer);
 ;// ./src/sprites/CatSprite.js
@@ -6011,6 +6047,8 @@ const DuckSprite = _ref => {
 
 
 
+
+// This component chooses which sprite to render based on the sprite name.
 const SpriteImage = _ref => {
   let {
     spriteName,
@@ -6046,14 +6084,16 @@ const Sprite = _ref2 => {
   let {
     sprite,
     containerSize,
-    onDragStart,
-    onDrag
+    shakeSprite,
+    onDragStart
   } = _ref2;
   const dispatch = useDispatch();
   const handleClick = e => {
     e.preventDefault();
     dispatch(selectSprite(sprite.id));
   };
+
+  // Calculate the position of the sprite based on container size and sprite position.
   const {
     left,
     top
@@ -6071,13 +6111,17 @@ const Sprite = _ref2 => {
     onDragStart(sprite.id);
   };
   return /*#__PURE__*/react.createElement("div", {
-    className: "absolute transition-transform duration-400",
+    className: `absolute transition-transform duration-400 sprite ${shakeSprite ? 'shake' : ''}` // Apply shake class conditionally
+    ,
     style: {
-      transform: `translate(${left}px, ${top}px) rotate(${sprite.rotation}deg)`
+      transform: `translate(${left}px, ${top}px) rotate(${sprite.rotation}deg)`,
+      position: 'absolute',
+      width: `${SPRITE_WIDTH}px`,
+      // Use constant width
+      height: `${SPRITE_HEIGHT}px` // Use constant height
     },
-    draggable: "true",
-    onDragStart: handleDragStart,
-    onDrag: onDrag
+    draggable: true,
+    onDragStart: handleDragStart
   }, /*#__PURE__*/react.createElement(SpriteImage, {
     spriteName: sprite.name,
     handleClick: handleClick,
@@ -6085,7 +6129,22 @@ const Sprite = _ref2 => {
       width: SPRITE_WIDTH + "px",
       height: SPRITE_HEIGHT + "px"
     }
-  }));
+  }), shakeSprite && /*#__PURE__*/react.createElement("div", {
+    className: "explosion-effect"
+  }, /*#__PURE__*/react.createElement("img", {
+    src: "/boom-13280-ezgif.com-gif-maker.gif",
+    alt: "Explosion",
+    style: {
+      position: 'absolute',
+      left: -25,
+      // Center the explosion
+      top: -25,
+      // Center the explosion
+      width: 100,
+      // Adjust based on explosion size
+      height: 100 // Adjust based on explosion size
+    }
+  })));
 };
 /* harmony default export */ const components_Sprite = (Sprite);
 ;// ./src/components/SpriteCard.js
@@ -6573,12 +6632,32 @@ const CirclePlay = createLucideIcon("CirclePlay", [
 
 //# sourceMappingURL=circle-play.js.map
 
+;// ./node_modules/lucide-react/dist/esm/icons/refresh-ccw.js
+/**
+ * @license lucide-react v0.446.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const RefreshCcw = createLucideIcon("RefreshCcw", [
+  ["path", { d: "M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "14sxne" }],
+  ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
+  ["path", { d: "M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16", key: "1hlbsb" }],
+  ["path", { d: "M16 16h5v5", key: "ccwih5" }]
+]);
+
+
+//# sourceMappingURL=refresh-ccw.js.map
+
 ;// ./src/components/SpriteScratch.js
 
 
 
 
-
+ // Import reset icon
 
 function SpriteScratch() {
   const spritesState = useSelector(state => state.sprites);
@@ -6628,9 +6707,11 @@ function SpriteScratch() {
         type: action.type,
         payload: action.payload
       });
-      if (sprites.length > 1 && spritesState.showCollisionAnimation && !spritesState.collisionHandled) {
+
+      // Check for collisions with all sprites
+      if (sprites.length > 1 && !spritesState.collisionHandled) {
         sprites.forEach(sprite2 => {
-          if (sprite2.name !== sprite.name) {
+          if (sprite2.id !== sprite.id) {
             dispatch(checkCollisionAndSwap({
               spriteId1: sprite.id,
               spriteId2: sprite2.id
@@ -6638,12 +6719,16 @@ function SpriteScratch() {
           }
         });
       }
+
+      // If a collision is detected, stop further actions for this sprite
+      if (spritesState.collisionHandled) return;
       actionIndex++;
       timeoutRefs.current[sprite.id] = setTimeout(executeNextAction, 400);
     };
     executeNextAction();
   };
   const play = () => {
+    clearTimeouts(); // Clear existing timeouts before playing
     sprites.forEach(sprite => {
       playForSprite(sprite.id);
     });
@@ -6652,6 +6737,10 @@ function SpriteScratch() {
     Object.keys(timeoutRefs.current).forEach(spriteId => {
       clearTimeout(timeoutRefs.current[spriteId]);
     });
+  };
+  const reset = () => {
+    clearTimeouts();
+    dispatch(resetSprites()); // Dispatch the reset action to Redux
   };
   (0,react.useEffect)(() => {
     if (spritesState.collisionHandled) {
@@ -6680,6 +6769,19 @@ function SpriteScratch() {
       clearTimeouts();
     };
   }, []);
+  (0,react.useEffect)(() => {
+    if (spritesState.shakeSprite) {
+      console.log("Shake effect started");
+      const timer = setTimeout(() => {
+        console.log("Resetting shakeSprite");
+        dispatch(resetShakeSprit());
+      }, 1000);
+      return () => {
+        console.log("Clearing timer");
+        clearTimeout(timer);
+      };
+    }
+  }, [spritesState.shakeSprite, dispatch]);
   const handleDragStart = (0,react.useCallback)(spriteId => {
     setDraggingSprite(spriteId);
   }, []);
@@ -6701,28 +6803,45 @@ function SpriteScratch() {
     }));
     setDraggingSprite(null);
   }, [dispatch, draggingSprite, containerRef]);
+  console.log(`in sprite scratch ${spritesState.shakeSprite}`);
   return /*#__PURE__*/react.createElement("div", {
-    className: "stage-area overflow-hidden relative bg-white border-2 border-gray-200",
+    className: `stage-area overflow-x-auto overflow-y-hidden relative bg-white border-2 border-gray-200
+            ${spritesState.shakeSprite ? "animate-collision" : ""}`,
     style: {
-      flex: 0.8
+      flex: 0.8,
+      width: '100%',
+      height: '100%',
+      position: 'relative'
     },
     ref: containerRef,
     onDragOver: handleDragOver,
     onDrop: handleDrop
+  }, /*#__PURE__*/react.createElement("div", {
+    style: {
+      display: 'flex',
+      width: '200%'
+    }
   }, sprites.map(sprite => /*#__PURE__*/react.createElement(components_Sprite, {
     key: sprite.id,
     sprite: sprite,
     containerSize: containerSize,
+    shakeSprite: spritesState.shakeSprite,
     onDragStart: handleDragStart
-  })), /*#__PURE__*/react.createElement("div", {
-    className: "absolute bottom-4 right-3"
+  }))), /*#__PURE__*/react.createElement("div", {
+    className: "absolute bottom-4 right-3 flex gap-4"
   }, /*#__PURE__*/react.createElement("button", {
     onClick: play,
     className: "flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300"
   }, /*#__PURE__*/react.createElement(CirclePlay, {
     className: "mr-2",
     size: 20
-  }), "Play")));
+  }), "Play"), /*#__PURE__*/react.createElement("button", {
+    onClick: reset,
+    className: "flex items-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-300"
+  }, /*#__PURE__*/react.createElement(RefreshCcw, {
+    className: "mr-2",
+    size: 20
+  }), "Reset")));
 }
 ;// ./src/components/PreviewArea.js
 

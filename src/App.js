@@ -12,6 +12,7 @@ export default function App() {
           <Sidebar /> <MidArea />
         </div>
         <div className="w-1/3 h-full overflow-hidden   bg-white border-t border-l border-gray-200 rounded-tl-xl ml-2">
+          
           <PreviewArea />
         </div>
       </div>
